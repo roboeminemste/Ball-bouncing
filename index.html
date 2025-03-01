@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Ball in a Circle</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        canvas {
+            background: #222;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <audio id="bounceSound" src="https://www.myinstants.com/media/sounds/smells-like-teen-spirit.mp3"></audio>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const boundaryRadius = Math.min(canvas.width, canvas.height) / 2 - 10;
+
+        let ball = {
+            x: centerX,
+            y: centerY - 100,
+            radius: 20,
+            dx: 3,
+            dy: 2,
+            growthFactor: 1.001, // 0.1% growth per bounce
+            friction: 0.99 // Slight friction for realism
+        };
+
+        const bounceSound = document.getElementById("bounceSound");
+
+        function playSound() {
+            bounceSound.currentTime = 0; 
+            bounceSound.play();
+        }
+
+        function update() {
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            // Apply friction
+            ball.dx *= ball.friction;
+            ball.dy *= ball.friction;
+
+            // Collision detection with circular boundary
+            const distanceFromCenter = Math.sqrt((ball.x - centerX) ** 2 + (ball.y - centerY) ** 2);
+            if (distanceFromCenter + ball.radius >= boundaryRadius) {
+                // Calculate normal vector
+                let normalX = ball.x - centerX;
+                let normalY = ball.y - centerY;
+                let length = Math.sqrt(normalX ** 2 + normalY ** 2);
+                normalX /= length;
+                normalY /= length;
+
+                // Reflect velocity
+                let dotProduct = ball.dx * normalX + ball.dy * normalY;
+                ball.dx -= 2 * dotProduct * normalX;
+                ball.dy -= 2 * dotProduct * normalY;
+
+                // Increase size
+                ball.radius *= ball.growthFactor;
+
+                // Play sound
+                playSound();
+            }
+
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw boundary circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, boundaryRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 5;
+            ctx.stroke();
+            ctx.closePath();
+
+            // Draw ball
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        update();
+    </script>
+</body>
+</html>
