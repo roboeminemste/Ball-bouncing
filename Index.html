@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bouncing Ball with Physics</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #000;
+    }
+    #container {
+      position: relative;
+      width: 500px;
+      height: 500px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    #ball {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: #ff0;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="ball"></div>
+  </div>
+
+  <script>
+    const ball = document.getElementById('ball');
+    const container = document.getElementById('container');
+    const containerRadius = container.offsetWidth / 2;
+    let ballRadius = 10;
+    let x = containerRadius;
+    let y = containerRadius;
+    let dx = 2;
+    let dy = 2;
+    let audioContext;
+    let oscillator;
+
+    function playTone() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (oscillator) {
+        oscillator.stop();
+      }
+      oscillator = audioContext.createOscillator();
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
+      oscillator.connect(audioContext.destination);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.1); // Play for 0.1 seconds
+    }
+
+    function updateBall() {
+      x += dx;
+      y += dy;
+
+      // Check for collision with the circular boundary
+      const distanceFromCenter = Math.sqrt((x - containerRadius) ** 2 + (y - containerRadius) ** 2);
+      if (distanceFromCenter + ballRadius >= containerRadius) {
+        // Reverse direction and grow the ball
+        dx = -dx;
+        dy = -dy;
+        ballRadius *= 1.001; // Increase size by 0.1%
+        ball.style.width = `${ballRadius * 2}px`;
+        ball.style.height = `${ballRadius * 2}px`;
+        playTone(); // Play the tone
+      }
+
+      // Update ball position
+      ball.style.left = `${x - ballRadius}px`;
+      ball.style.top = `${y - ballRadius}px`;
+
+      requestAnimationFrame(updateBall);
+    }
+
+    updateBall();
+  </script>
+</body>
+</html>
