@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bouncing Ball with Physics</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #000;
+    }
+    #container {
+      position: relative;
+      width: 500px;
+      height: 500px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    #ball {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: #ff0;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="ball"></div>
+  </div>
+
+  <script>
+    const ball = document.getElementById('ball');
+    const container = document.getElementById('container');
+    const containerRadius = container.offsetWidth / 2;
+    let ballRadius = 10;
+    let x = containerRadius;
+    let y = containerRadius;
+    let dx = 2; // Horizontal velocity
+    let dy = 2; // Vertical velocity
+    const gravity = 0.1; // Simulate gravity
+    const initialSpeed = Math.sqrt(dx * dx + dy * dy); // Constant speed
+    let audioContext;
+    let oscillator;
+
+    // Function to play a tone resembling "Smells Like Teen Spirit"
+    function playTone() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (oscillator) {
+        oscillator.stop();
+      }
+      oscillator = audioContext.createOscillator();
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
+      oscillator.connect(audioContext.destination);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.1); // Play for 0.1 seconds
+    }
+
+    // Function to check collision with the circular boundary
+    function checkCollision() {
+      const distanceFromCenter = Math.sqrt((x - containerRadius) ** 2 + (y - containerRadius) ** 2);
+      if (distanceFromCenter + ballRadius >= containerRadius) {
+        // Calculate the angle of collision
+        const angle = Math.atan2(y - containerRadius, x - containerRadius);
+        // Reflect the velocity vector based on the collision angle
+        dx = -Math.cos(angle) * initialSpeed;
+        dy = -Math.sin(angle) * initialSpeed;
+
+        // Increase ball size by 0.1%
+        ballRadius *= 1.001;
+        ball.style.width = `${ballRadius * 2}px`;
+        ball.style.height = `${ballRadius * 2}px`;
+
+        // Play the tone
+        playTone();
+      }
+    }
+
+    // Function to update ball position and physics
+    function updateBall() {
+      // Apply gravity
+      dy += gravity;
+
+      // Update ball position
+      x += dx;
+      y += dy;
+
+      // Check for collision with the circular boundary
+      checkCollision();
+
+      // Update ball position on the screen
+      ball.style.left = `${x - ballRadius}px`;
+      ball.style.top = `${y - ballRadius}px`;
+
+      // Request the next frame
+      requestAnimationFrame(updateBall);
+    }
+
+    // Start the animation
+    updateBall();
+  </script>
+</body>
+</html>
